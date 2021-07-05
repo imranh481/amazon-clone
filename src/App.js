@@ -1,24 +1,61 @@
-import logo from './logo.svg';
 import './App.css';
+import Header from './components/Header';
+import Home from './components/Home'
+import Checkout from './components/Checkout';
+import Login from './components/Login';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { useStateValue } from './components/StateProvider';
+import React, { useEffect} from 'react';
+import { auth } from './Firebase'
 
 function App() {
+
+  //get currennt state of basket from data layer
+  const [{user}, dispatch] = useStateValue();
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        //user is logged in
+        dispatch ({
+          type: 'SET_USER',
+          user: authUser
+        })
+      } else {
+        //user is logged out
+        dispatch ({
+          type: 'SET_USER',
+          user: null
+        })
+      }
+    });
+
+    return () => {
+      // cleanup
+      unsubscribe();
+    }
+  }, [dispatch])
+
+  console.log(user)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Switch>
+          <Route exact path = "/">
+            <Header />
+            <Home />
+          </Route>
+          <Route path = "/checkout">
+            <Header />
+            <Checkout />
+          </Route>
+          <Route path = "/login">
+            <Login />
+          </Route>
+        </Switch>
+      </div>
+    </Router>
   );
 }
 
